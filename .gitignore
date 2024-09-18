@@ -1,0 +1,6 @@
+dataset/*
+outdoor/*
+output_images/*
+checkpoint/*
+models/*
+*.pth
