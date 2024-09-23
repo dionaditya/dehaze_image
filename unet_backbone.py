@@ -16,13 +16,13 @@ from timm.models.vision_transformer import DropPath, Mlp, Attention as BaseAttn
 import math
 from pytorch_msssim import ssim
 from torchvision.models import efficientnet_b0
-
+import random
 
 # Load dataset paths
-train_hazy_path = './outdoor/hazy/'
-val_hazy_path = './dataset/test/val/hazy'
-val_gt_path = './dataset/test/val/clear'
-gt_path = './outdoor/gt/'
+train_hazy_path = './ohazy/hazy/'
+val_hazy_path = './ohazy/val/hazy'
+val_gt_path = './ohazy/val/gt'
+gt_path = './ohazy/gt/'
 savepath = ""
 batch_size = 16
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -79,6 +79,51 @@ def display_images(inputs, targets, outputs, epoch):
         
         plt.show()  # Display in Colab notebook
         
+class RandomCropResizeAugmenter:
+    def __init__(self, factor, output_size=(256, 256)):
+        self.factor = factor
+        self.output_size = output_size
+
+    def __call__(self, img1, img2=None):
+        crops1 = []
+        crops2 = []
+        width, height = img1.size
+        for _ in range(self.factor):
+            edge = random.choice(['bottom-left', 'top-left', 'bottom-right', 'top-right'])
+            crop_x = crop_y = crop_width = crop_height = 0
+
+            if edge == 'bottom-left':
+                crop_x = 0
+                crop_y = random.randint(height - 20, height - 10)
+                crop_width = random.randint(10, 20)
+                crop_height = height - crop_y
+            elif edge == 'top-left':
+                crop_x = 0
+                crop_y = 0
+                crop_width = random.randint(10, 20)
+                crop_height = random.randint(10, 20)
+            elif edge == 'bottom-right':
+                crop_x = random.randint(width - 20, width - 10)
+                crop_y = random.randint(height - 20, height - 10)
+                crop_width = width - crop_x
+                crop_height = height - crop_y
+            elif edge == 'top-right':
+                crop_x = random.randint(width - 20, width - 10)
+                crop_y = 0
+                crop_width = width - crop_x
+                crop_height = random.randint(10, 20)
+
+            crop1 = img1.crop((crop_x, crop_y, crop_x + crop_width, crop_y + crop_height))
+            resized_crop1 = crop1.resize(self.output_size, Image.BILINEAR)
+            crops1.append(resized_crop1)
+
+            if img2 is not None:
+                crop2 = img2.crop((crop_x, crop_y, crop_x + crop_width, crop_y + crop_height))
+                resized_crop2 = crop2.resize(self.output_size, Image.BILINEAR)
+                crops2.append(resized_crop2)
+
+        return (crops1, crops2) if img2 is not None else crops1
+    
 class HazyClearDataset(Dataset):
     def __init__(self, hazy_dir, clear_dir=None, transform=None, is_test=False):
         self.hazy_dir = hazy_dir
@@ -124,10 +169,8 @@ class HazyClearDataset(Dataset):
             clear_img_path = os.path.join(self.clear_dir, clear_img)
             clear_image = Image.open(clear_img_path).convert("RGB")
 
-
             if self.transform:
-                hazy_image = self.transform(hazy_image)
-                clear_image = self.transform(clear_image)
+                hazy_image, clear_image = self.transform((hazy_image, clear_image))
             
             return hazy_image, clear_image
         else:
@@ -135,13 +178,19 @@ class HazyClearDataset(Dataset):
                 hazy_image = self.transform(hazy_image)
             
             return hazy_image
-        
+
 # Define transforms for the dataset
-transform = transforms.Compose([
-    transforms.Resize((256, 256)),
-    transforms.ToTensor()
-])
-# DataLoader
+augmenter = RandomCropResizeAugmenter(factor=5)
+
+def transform(images):
+    if isinstance(images, tuple):
+        img1, img2 = images
+        crops1, crops2 = augmenter(img1, img2)
+        return transforms.ToTensor()(crops1[0]), transforms.ToTensor()(crops2[0])
+    else:
+        crops = augmenter(images)
+        return transforms.ToTensor()(crops[0])
+    
 train_dataset = HazyClearDataset(hazy_dir=train_hazy_path, clear_dir=gt_path, transform=transform)
 train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 
@@ -786,11 +835,11 @@ if __name__ == '__main__':
     optimizer = optim.Adam(model.parameters(), lr=0.001, weight_decay=1e-5)
 
     # Load from checkpoint if available
-    checkpoint_path = os.path.join(savepath, "current_checkpoint.pth")
+    checkpoint_path = os.path.join(savepath, "./current_checkpoint.pth")
     model, optimizer, start_epoch, best_val_loss = load_checkpoint(checkpoint_path, model, optimizer)
 
     # Training loop
-    num_epochs = 2000
+    num_epochs = 400
     for epoch in range(start_epoch, num_epochs):
         model.train()
         running_loss = 0.0

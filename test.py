@@ -5,7 +5,7 @@ import torch.optim as optim
 from torchvision import transforms
 from torch.utils.data import DataLoader
 import matplotlib.pyplot as plt
-from unet_backbone import SRTransformerUNet, HazyClearDataset
+from unet import SRTransformerUNet, HazyClearDataset
 from PIL import Image
 import time 
 
@@ -66,6 +66,12 @@ def visualize_output(model, image_path, transform, device='cuda'):
     image = Image.open(image_path).convert('RGB')
     image = transform(image).unsqueeze(0).to(device)  # Add batch dimension and move to device
 
+    def tensor_to_numpy(tensor):
+        tensor = tensor.cpu().detach()
+        tensor = tensor.permute(0, 2, 3, 1).numpy()  # Change dimensions for plotting
+        tensor = (tensor - tensor.min()) / (tensor.max() - tensor.min())  # Normalize to [0, 1]
+        return tensor
+
     with torch.no_grad():
         start_time = time.time()
         output = model(image)
@@ -74,6 +80,7 @@ def visualize_output(model, image_path, transform, device='cuda'):
         # Convert the tensor back to an image
         output_image_tensor = output.squeeze(0).cpu()  # Remove batch dimension and move to CPU
         output_image_tensor = output_image_tensor.clamp(0, 1)
+        
         output_image = transforms.ToPILImage()(output_image_tensor)
 
         # Save the image

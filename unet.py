@@ -12,17 +12,18 @@ from PIL import Image
 import torchvision.transforms as T
 from torchvision.utils import save_image
 import matplotlib.pyplot as plt
-from timm.models.vision_transformer import DropPath, Mlp, Attention as BaseAttn
+from timm.models.vision_transformer import DropPath, Mlp, Attention as BaseAttn 
 import math
 from pytorch_msssim import ssim
 from torchvision.models import efficientnet_b0
+from pytorch_msssim import ms_ssim
 
 
 # Load dataset paths
-train_hazy_path = './outdoor/hazy/'
-val_hazy_path = './dataset/test/val/hazy'
-val_gt_path = './dataset/test/val/clear'
-gt_path = './outdoor/gt/'
+train_hazy_path = './ohazy/hazy/'
+val_hazy_path = './ohazy/val/hazy'
+val_gt_path = './ohazy/val/gt'
+gt_path = './ohazy/gt/'
 savepath = ""
 batch_size = 16
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -554,10 +555,14 @@ def display_images(inputs, targets, outputs, epoch):
         
         plt.show()  # Display in Colab notebook
 
+
 def combined_loss(outputs, targets, alpha=0.84):
     mse_loss = nn.MSELoss()(outputs, targets)
-    ssim_loss = 1 - ssim(outputs, targets, data_range=1.0, size_average=True)
-    return alpha * mse_loss + (1 - alpha) * ssim_loss
+    
+    # Calculate MS-SSIM loss
+    ms_ssim_loss = 1 - ms_ssim(outputs, targets, data_range=255, size_average=True)
+    
+    return alpha * mse_loss + (1 - alpha) * ms_ssim_loss
 
 if __name__ == '__main__':
     # Parameters

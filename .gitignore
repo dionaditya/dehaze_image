@@ -4,3 +4,10 @@ output_images/*
 checkpoint/*
 models/*
 *.pth
+unet/*
+unet_bacbone/*
+unet_bacbone_model/*
+ohazy/tmp-gt/*
+ohazy/tmp-hazy/*
+1000_/*
+1000_epoch/*
