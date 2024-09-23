@@ -835,7 +835,7 @@ if __name__ == '__main__':
     optimizer = optim.Adam(model.parameters(), lr=0.001, weight_decay=1e-5)
 
     # Load from checkpoint if available
-    checkpoint_path = os.path.join(savepath, "./current_checkpoint.pth")
+    checkpoint_path = os.path.join(savepath, "./backbone_current_checkpoin.pth")
     model, optimizer, start_epoch, best_val_loss = load_checkpoint(checkpoint_path, model, optimizer)
 
     # Training loop
