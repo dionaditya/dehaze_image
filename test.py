@@ -114,7 +114,7 @@ if __name__ == "__main__":
         transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
     ])
 
-    test_image_path = 'dataset/test/hazy/images.png'  # Path to your single test image
+    test_image_path = 'dataset/test/hazy/images.jpg'  # Path to your single test image
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 

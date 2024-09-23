@@ -114,7 +114,7 @@ if __name__ == "__main__":
         transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
     ])
 
-    test_image_path = 'dataset/test/hazy/images.jpg'  # Path to your single test image
+    test_image_path = 'dataset/test/hazy/images.png'  # Path to your single test image
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
@@ -123,6 +123,6 @@ if __name__ == "__main__":
     optimizer = optim.Adam(model.parameters(), lr=1e-4, weight_decay=1e-5)
 
     # Load the state dictionary
-    model, optimizer, start_epoch, best_val_loss = load_checkpoint("./best_checkpoint.pth", model, optimizer)
+    model, optimizer, start_epoch, best_val_loss = load_checkpoint("./current_checkpoint.pth", model, optimizer)
     
     visualize_output(model, test_image_path, transform, device)
