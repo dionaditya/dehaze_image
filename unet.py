@@ -577,7 +577,7 @@ if __name__ == '__main__':
     model, optimizer, start_epoch, best_val_loss = load_checkpoint(checkpoint_path, model, optimizer)
 
     # Training loop
-    num_epochs = 2000
+    num_epochs = 1000
     for epoch in range(start_epoch, num_epochs):
         model.train()
         running_loss = 0.0

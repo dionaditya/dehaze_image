@@ -839,7 +839,7 @@ if __name__ == '__main__':
     model, optimizer, start_epoch, best_val_loss = load_checkpoint(checkpoint_path, model, optimizer)
 
     # Training loop
-    num_epochs = 400
+    num_epochs = 1000
     for epoch in range(start_epoch, num_epochs):
         model.train()
         running_loss = 0.0
@@ -877,13 +877,13 @@ if __name__ == '__main__':
                 'model_state_dict': model.state_dict(),
                 'optimizer_state_dict': optimizer.state_dict(),
                 'best_val_loss': best_val_loss
-            }, "best_checkpoint.pth")
+            }, "backbone_best_checkpoint.pth")
             
         torch.save({
                 'epoch': epoch,
                 'model_state_dict': model.state_dict(),
                 'optimizer_state_dict': optimizer.state_dict(),
                 'best_val_loss': best_val_loss
-        }, f"current_checkpoint.pth")
+        }, f"backbone_current_checkpoint.pth")
 
     print("Training complete.")
