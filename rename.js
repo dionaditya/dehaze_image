@@ -30,5 +30,5 @@ function renameFilesInDirectory(directory) {
 }
 
 // Usage example
-const directoryPath = './ohazy/val/hazy'; // Path to the 'ssrc' directory
+const directoryPath = './hazy'; // Path to the 'ssrc' directory
 renameFilesInDirectory(directoryPath);

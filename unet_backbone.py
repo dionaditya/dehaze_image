@@ -788,7 +788,7 @@ if __name__ == '__main__':
     optimizer = optim.Adam(model.parameters(), lr=0.001, weight_decay=1e-5)
 
     # Load from checkpoint if available
-    checkpoint_path = os.path.join(savepath, "./backbone_current_checkpoint.pth")
+    checkpoint_path = os.path.join(savepath, "./backbone_best_checkpoint.pth")
     model, optimizer, start_epoch, best_val_loss = load_checkpoint(checkpoint_path, model, optimizer)
 
     # Training loop
@@ -796,17 +796,19 @@ if __name__ == '__main__':
     for epoch in range(start_epoch, num_epochs):
         model.train()
         running_loss = 0.0
-        for i, (inputs, targets) in enumerate(train_loader):
-            optimizer.zero_grad()
-            inputs, targets = inputs.to(device), targets.to(device)
-            outputs = model(inputs)
-            clear_images_resized = F.interpolate(targets, size=outputs.shape[2:])
-            loss = combined_loss(outputs, clear_images_resized)
-            loss.backward()
-            optimizer.step()
-            running_loss += loss.item()
-        epoch_loss = running_loss / len(train_loader)
-        print(f"Epoch {epoch+1}/{num_epochs}, Training Loss: {epoch_loss}")
+        
+        with torch.no_grad():
+            for i, (inputs, targets) in enumerate(train_loader):
+                optimizer.zero_grad()
+                inputs, targets = inputs.to(device), targets.to(device)
+                outputs = model(inputs)
+                clear_images_resized = F.interpolate(targets, size=outputs.shape[2:])
+                loss = combined_loss(outputs, clear_images_resized)
+                loss.backward()
+                optimizer.step()
+                running_loss += loss.item()
+            epoch_loss = running_loss / len(train_loader)
+            print(f"Epoch {epoch+1}/{num_epochs}, Training Loss: {epoch_loss}")
 
         # Validation loop
         model.eval()

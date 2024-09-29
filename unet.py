@@ -503,7 +503,7 @@ class SuperResolutionTransformer(nn.Module):
         return x
     
 class SRTransformerUNet(nn.Module):
-    def __init__(self, in_channels=3, embed_dim=96, num_heads=4, num_layers=8, patch_size=4, upscale_factor=2):
+    def __init__(self, in_channels=3, embed_dim=96, num_heads=4, num_layers=4, patch_size=4, upscale_factor=2):
         super(SRTransformerUNet, self).__init__()
         self.sr_transformer = LightweightTransformer(in_channels, embed_dim, num_heads, num_layers, patch_size, upscale_factor)
         self.unet = UNet()
