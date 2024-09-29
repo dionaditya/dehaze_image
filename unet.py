@@ -393,7 +393,7 @@ class LightweightTransformer(nn.Module):
         return x
     
 class GlobalFeatureTransformer(nn.Module):
-    def __init__(self, in_channels=3, embed_dim=96, num_heads=4, num_layers=16, patch_size=4):
+    def __init__(self, in_channels=3, embed_dim=96, num_heads=4, num_layers=4, patch_size=4):
         super(GlobalFeatureTransformer, self).__init__()
         self.patch_embed = PatchEmbedding(in_channels, embed_dim, patch_size)
         self.transformer_blocks = nn.Sequential(*[TransformerBlock(embed_dim, num_heads) for _ in range(num_layers)])
@@ -507,7 +507,7 @@ class SRTransformerUNet(nn.Module):
         super(SRTransformerUNet, self).__init__()
         self.sr_transformer = LightweightTransformer(in_channels, embed_dim, num_heads, num_layers, patch_size, upscale_factor)
         self.unet = UNet()
-        self.global_transformer = GlobalFeatureTransformer(in_channels, embed_dim, num_heads, num_layers, patch_size)
+        self.global_transformer = GlobalFeatureTransformer(in_channels, embed_dim, num_heads, 16, patch_size)
     def forward(self, x):
         sr = self.sr_transformer(x)
         unet_features = self.unet(sr)

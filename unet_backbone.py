@@ -724,7 +724,7 @@ class SRTransformerUNet(nn.Module):
         super(SRTransformerUNet, self).__init__()
         self.sr_transformer = LightweightTransformer(in_channels, embed_dim, num_heads, num_layers, patch_size, upscale_factor)
         self.unet = Unet()
-        self.global_transformer = GlobalFeatureTransformer(in_channels, embed_dim, num_heads, num_layers, patch_size)
+        self.global_transformer = GlobalFeatureTransformer(in_channels, embed_dim, num_heads, 16, patch_size)
     def forward(self, x):
         sr = self.sr_transformer(x)
         unet_features = self.unet(sr)
