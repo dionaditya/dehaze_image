@@ -139,8 +139,8 @@ if __name__ == "__main__":
         transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
     ])
 
-    hazy_folder_path = 'outdoor/hazy'  # Path to your folder with hazy images
-    gt_folder_path = 'outdoor/gt'  # Path to your folder with ground truth images
+    hazy_folder_path = 'ohazy/val/hazy'  # Path to your folder with hazy images
+    gt_folder_path = 'ohazy/val/gt'  # Path to your folder with ground truth images
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
