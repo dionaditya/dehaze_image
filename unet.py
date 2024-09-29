@@ -393,7 +393,7 @@ class LightweightTransformer(nn.Module):
         return x
     
 class GlobalFeatureTransformer(nn.Module):
-    def __init__(self, in_channels=3, embed_dim=96, num_heads=4, num_layers=4, patch_size=4):
+    def __init__(self, in_channels=3, embed_dim=96, num_heads=4, num_layers=10, patch_size=4):
         super(GlobalFeatureTransformer, self).__init__()
         self.patch_embed = PatchEmbedding(in_channels, embed_dim, patch_size)
         self.transformer_blocks = nn.Sequential(*[TransformerBlock(embed_dim, num_heads) for _ in range(num_layers)])
