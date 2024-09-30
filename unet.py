@@ -557,6 +557,24 @@ def display_images(inputs, targets, outputs, epoch):
         
         plt.show()  # Display in Colab notebook
 
+# Define the VGG-based Perceptual Loss
+class VGGPerceptualLoss(nn.Module):
+    def __init__(self, layer_weights=None):
+        super(VGGPerceptualLoss, self).__init__()
+        self.vgg = models.vgg19(pretrained=True).features.eval()  # Use VGG19
+        self.layer_weights = layer_weights if layer_weights else [1/3, 1/3, 1/3]  # Weights for the layers
+        self.selected_layers = [4, 9, 18]  # Use specific layers for perceptual loss (relu1_2, relu2_2, relu4_2)
+        for param in self.vgg.parameters():
+            param.requires_grad = False  # Freeze the VGG model
+
+    def forward(self, x, y):
+        loss = 0.0
+        for i, layer in enumerate(self.selected_layers):
+            # Extract feature maps from the output and target images
+            x_feat = self.vgg[:layer](x)
+            y_feat = self.vgg[:layer](y)
+            loss += self.layer_weights[i] * F.l1_loss(x_feat, y_feat)
+        return loss
 
 # Updated combined loss with perceptual loss
 def combined_loss(outputs, targets, alpha=0.84, beta=0.15, perceptual_loss_fn=None):
