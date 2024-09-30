@@ -19,7 +19,7 @@ import math
 from pytorch_msssim import ssim
 from torchvision.models import efficientnet_b0
 from pytorch_msssim import ms_ssim
-
+from torchvision import models
 
 # Load dataset paths
 train_hazy_path = './ohazy/hazy/'
@@ -558,13 +558,21 @@ def display_images(inputs, targets, outputs, epoch):
         plt.show()  # Display in Colab notebook
 
 
-def combined_loss(outputs, targets, alpha=0.84):
+# Updated combined loss with perceptual loss
+def combined_loss(outputs, targets, alpha=0.84, beta=0.15, perceptual_loss_fn=None):
     mse_loss = nn.MSELoss()(outputs, targets)
     
-    # Calculate MS-SSIM loss
+    # MS-SSIM loss
     ms_ssim_loss = 1 - ms_ssim(outputs, targets, data_range=255, size_average=True)
     
-    return alpha * mse_loss + (1 - alpha) * ms_ssim_loss
+    # Perceptual loss
+    perceptual_loss = perceptual_loss_fn(outputs, targets) if perceptual_loss_fn else 0.0
+    
+    # Combined loss with weights for MSE, MS-SSIM, and perceptual loss
+    return alpha * mse_loss + (1 - alpha) * ms_ssim_loss + beta * perceptual_loss
+
+# Instantiate perceptual loss
+perceptual_loss_fn = VGGPerceptualLoss()
 
 if __name__ == '__main__':
     # Parameters
@@ -579,7 +587,7 @@ if __name__ == '__main__':
     model, optimizer, start_epoch, best_val_loss = load_checkpoint(checkpoint_path, model, optimizer)
 
     # Training loop
-    num_epochs = 2000
+    num_epochs = 1000
     for epoch in range(start_epoch, num_epochs):
         model.train()
         running_loss = 0.0
@@ -588,7 +596,7 @@ if __name__ == '__main__':
             inputs, targets = inputs.to(device), targets.to(device)
             outputs = model(inputs)
             clear_images_resized = F.interpolate(targets, size=outputs.shape[2:])
-            loss = combined_loss(outputs, clear_images_resized)
+            loss = combined_loss(outputs, clear_images_resized, perceptual_loss_fn=perceptual_loss_fn)
             loss.backward()
             optimizer.step()
             running_loss += loss.item()
@@ -603,7 +611,7 @@ if __name__ == '__main__':
                 inputs, targets = inputs.to(device), targets.to(device)
                 outputs = model(inputs)
                 clear_images_resized = F.interpolate(targets, size=outputs.shape[2:])
-                loss = combined_loss(outputs, clear_images_resized)
+                loss = combined_loss(outputs, clear_images_resized, perceptual_loss_fn=perceptual_loss_fn)
                 val_loss += loss.item()
         val_loss /= len(test_loader)
         print(f"Epoch {epoch+1}/{num_epochs}, Validation Loss: {val_loss}")

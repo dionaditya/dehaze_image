@@ -148,6 +148,6 @@ if __name__ == "__main__":
 
     optimizer = optim.Adam(model.parameters(), lr=1e-4, weight_decay=1e-5)
 
-    model, optimizer, start_epoch, best_val_loss = load_checkpoint("./backbone_best_checkpoint.pth", model, optimizer)
+    model, optimizer, start_epoch, best_val_loss = load_checkpoint("./backbone_current_checkpoint.pth", model, optimizer)
 
     compute_metrics_for_folder(model, hazy_folder_path, gt_folder_path, transform, device)
